@@ -1,0 +1,73 @@
+---
+- hosts: localhost
+  tasks:
+    - name: Install homebrew
+      include_role:
+        name: geerlingguy.mac.homebrew
+
+    - name: 'add custom homebrew repos'
+      community.general.homebrew_tap:
+        name: [
+          adoptopenjdk/openjdk,
+          homebrew/cask-versions,
+          hashicorp/tap,
+          cirruslabs/cli,
+          hudochenkov/sshpass
+        ]
+
+    - name: Install core packages via brew casks
+      community.general.homebrew_cask:
+        name: "{{ item }}"
+      ignore_errors: yes
+      with_items:
+        - temurin
+        - temurin11
+        - adoptopenjdk11
+
+    - name: "Install homebrew packages"
+      community.general.homebrew:
+        name: [
+          'ruby-install',
+          'chruby',
+          'watchman',
+          'ios-deploy',
+          'awscli',
+          'azure-cli',
+          'cirruslabs/cli/tart',
+          'cirruslabs/cli/cirrus',
+          'hashicorp/tap/packer',
+          'hudochenkov/sshpass/sshpass'
+        ]
+        state: present
+        update_homebrew: yes
+
+    - name: "change permission homebrew"
+      ansible.builtin.shell: |
+        chown -R "{{ ansible_user_id }}" $(brew --prefix)/*
+      become: true
+
+    - name: Install Ruby
+      ansible.builtin.shell: |
+        ruby-install ruby 2.7.8
+        gem install bundler -v 2.4.7
+
+    - name: Install nvm
+      ansible.builtin.shell: >
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+
+    - name: Install node
+      ansible.builtin.shell: |
+        source ~/.zprofile
+        nvm install {{item}}
+        npm install -g yarn@1
+      loop:
+        - 16
+        - 18
+        - 20
+
+    - name: Install npm package globally.
+      community.general.npm:
+        name: "{{ item }}"
+        global: true
+      with_items:
+        - '@react-native-community/cli'
