@@ -1,10 +1,16 @@
 ---
 - hosts: localhost
   tasks:
+    - name: Check if Homebrew is installed
+      command: which brew
+      register: brew_installed
+      ignore_errors: true
+
     - name: Install homebrew
       include_role:
         name: geerlingguy.mac.homebrew
-
+      when: brew_installed.rc != 0
+    
     - name: 'add custom homebrew repos'
       community.general.homebrew_tap:
         name: [
@@ -39,10 +45,6 @@
         state: present
         update_homebrew: yes
 
-    - name: "change permission homebrew"
-      ansible.builtin.shell: |
-        chown -R "{{ ansible_user_id }}" $(brew --prefix)/*
-      become: true
 
     - name: Install Ruby
       ansible.builtin.shell: |

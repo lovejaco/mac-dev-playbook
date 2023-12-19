@@ -7,5 +7,5 @@ python3 get-pip.py
 pip3 install --ignore-installed ansible --user
 ansible-galaxy install -r requirements.yml 
 
-# ansible-playbook -i "localhost," -c local ansible_osx.yml --ask-become-pass
+ansible-playbook -i "localhost," -c local ansible_osx.yml --ask-become-pass
 # https://github.com/TalkingQuickly/ansible-osx-setup/blob/master/README.md
